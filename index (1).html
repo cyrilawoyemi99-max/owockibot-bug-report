@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>owockibot.xyz — Bug Report · March 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Syne:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0c0c0e;
+    --bg2: #131316;
+    --bg3: #1a1a1f;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(255,255,255,0.13);
+    --text: #e8e6df;
+    --muted: #7a7870;
+    --dim: #4a4845;
+    --accent: #f0e040;
+    --accent2: #e8855a;
+    --critical: #ff5a5a;
+    --high: #f09840;
+    --medium: #4fa8e8;
+    --low: #5ccf8a;
+    --critical-bg: rgba(255,90,90,0.08);
+    --high-bg: rgba(240,152,64,0.08);
+    --medium-bg: rgba(79,168,232,0.08);
+    --low-bg: rgba(92,207,138,0.08);
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  .container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Header */
+  .site-header {
+    padding: 56px 0 48px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .header-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 1px;
+    background: var(--muted);
+  }
+
+  .site-title {
+    font-size: clamp(28px, 5vw, 46px);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+
+  .site-title span {
+    color: var(--accent);
+  }
+
+  .header-meta {
+    display: flex;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+  }
+
+  .header-meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .header-meta-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .header-meta-value {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .header-meta-value.c-critical { color: var(--critical); }
+  .header-meta-value.c-high { color: var(--high); }
+  .header-meta-value.c-medium { color: var(--medium); }
+  .header-meta-value.c-low { color: var(--low); }
+
+  /* Summary bar */
+  .summary-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 36px 0;
+  }
+
+  .summary-cell {
+    background: var(--bg2);
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .summary-cell-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+
+  .summary-cell-value {
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  /* Section heading */
+  .section-heading {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 40px 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-heading::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Bug cards */
+  .bug-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .bug-card:hover {
+    border-color: var(--border-hover);
+  }
+
+  .bug-card.open {
+    border-color: var(--border-hover);
+  }
+
+  .bug-trigger {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    cursor: pointer;
+    background: var(--bg2);
+    transition: background 0.15s;
+    user-select: none;
+    list-style: none;
+  }
+
+  .bug-trigger:hover {
+    background: var(--bg3);
+  }
+
+  .bug-card.open .bug-trigger {
+    background: var(--bg3);
+  }
+
+  .sev-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  .sev-critical { background: var(--critical-bg); color: var(--critical); border: 1px solid rgba(255,90,90,0.2); }
+  .sev-high     { background: var(--high-bg);     color: var(--high);     border: 1px solid rgba(240,152,64,0.2); }
+  .sev-medium   { background: var(--medium-bg);   color: var(--medium);   border: 1px solid rgba(79,168,232,0.2); }
+  .sev-low      { background: var(--low-bg);       color: var(--low);     border: 1px solid rgba(92,207,138,0.2); }
+
+  .bug-id {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    flex-shrink: 0;
+  }
+
+  .bug-title {
+    font-size: 14px;
+    font-weight: 600;
+    flex: 1;
+    color: var(--text);
+  }
+
+  .bug-loc {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .bug-arrow {
+    color: var(--dim);
+    font-size: 14px;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+
+  .bug-card.open .bug-arrow {
+    transform: rotate(90deg);
+  }
+
+  .bug-body {
+    display: none;
+    padding: 24px;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+  }
+
+  .bug-card.open .bug-body {
+    display: block;
+    animation: slideDown 0.15s ease;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .bug-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 600px) {
+    .bug-grid { grid-template-columns: 1fr; }
+    .bug-loc { display: none; }
+  }
+
+  .bug-field { display: flex; flex-direction: column; gap: 6px; }
+  .bug-field.full { grid-column: 1 / -1; }
+
+  .field-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .field-content {
+    font-size: 13px;
+    line-height: 1.65;
+    color: rgba(232,230,223,0.75);
+  }
+
+  .field-code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--dim);
+    padding: 10px 14px;
+    border-radius: 6px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .field-fix {
+    font-size: 13px;
+    line-height: 1.65;
+    background: rgba(92,207,138,0.06);
+    border: 1px solid rgba(92,207,138,0.15);
+    border-left: 3px solid var(--low);
+    padding: 12px 16px;
+    border-radius: 6px;
+    color: rgba(232,230,223,0.8);
+  }
+
+  /* Footer */
+  .site-footer {
+    border-top: 1px solid var(--border);
+    padding: 32px 0 48px;
+    margin-top: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .footer-text {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .footer-link {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+
+  .footer-link:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  /* Accent line on page load */
+  .accent-line {
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2), transparent);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+  }
+</style>
+</head>
+<body>
+
+<div class="accent-line"></div>
+
+<div class="container">
+
+  <header class="site-header">
+    <div class="header-eyebrow">Manual site audit · March 2026</div>
+    <h1 class="site-title">owockibot.xyz<br><span>Bug Report</span></h1>
+
+    <div class="header-meta">
+      <div class="header-meta-item">
+        <span class="header-meta-label">Pages Reviewed</span>
+        <span class="header-meta-value">7</span>
+      </div>
+      <div class="header-meta-item">
+        <span class="header-meta-label">Bugs Found</span>
+        <span class="header-meta-value">8</span>
+      </div>
+      <div class="header-meta-item">
+        <span class="header-meta-label">Critical</span>
+        <span class="header-meta-value c-critical">1</span>
+      </div>
+      <div class="header-meta-item">
+        <span class="header-meta-label">High</span>
+        <span class="header-meta-value c-high">3</span>
+      </div>
+      <div class="header-meta-item">
+        <span class="header-meta-label">Medium</span>
+        <span class="header-meta-value c-medium">2</span>
+      </div>
+      <div class="header-meta-item">
+        <span class="header-meta-label">Low</span>
+        <span class="header-meta-value c-low">2</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="summary-bar">
+    <div class="summary-cell">
+      <span class="summary-cell-label">Target</span>
+      <span class="summary-cell-value" style="font-size:14px;font-family:var(--mono)">owockibot.xyz</span>
+    </div>
+    <div class="summary-cell">
+      <span class="summary-cell-label">Audit Type</span>
+      <span class="summary-cell-value" style="font-size:14px;font-family:var(--mono)">Frontend / UX</span>
+    </div>
+    <div class="summary-cell">
+      <span class="summary-cell-label">Date</span>
+      <span class="summary-cell-value" style="font-size:14px;font-family:var(--mono)">March 2026</span>
+    </div>
+    <div class="summary-cell">
+      <span class="summary-cell-label">Status</span>
+      <span class="summary-cell-value" style="font-size:14px;color:var(--high);font-family:var(--mono)">Open</span>
+    </div>
+  </div>
+
+  <div class="section-heading">Findings</div>
+
+  <div id="bug-list"></div>
+
+  <footer class="site-footer">
+    <span class="footer-text">owockibot.xyz · Bug Report · March 2026</span>
+    <a href="https://www.owockibot.xyz" class="footer-link" target="_blank">owockibot.xyz ↗</a>
+  </footer>
+
+</div>
+
+<script>
+const bugs = [
+  {
+    id: "BUG-01",
+    severity: "critical",
+    title: "All 4 guide pages return 404 errors",
+    location: "/guides/*.html",
+    where: "Homepage > Guides section",
+    description: "The homepage prominently links to 4 guide pages: 'Getting Started: Your First Bounty', 'Agent API Reference', 'Commitment Pools', and 'Building Reputation with Attestations'. Every one of them returns a 404 Not Found error. These are top-of-funnel pages for new builders — anyone clicking these links hits a dead end immediately.",
+    reproduction: "Click any of the 4 guide cards on the homepage → 404 error on all of them.",
+    fix: "Create the missing guide pages at the correct paths: /guides/getting-started.html, /guides/agent-api.html, /guides/commitment-pools.html, /guides/reputation.html — or update the links to point to wherever this content actually lives."
+  },
+  {
+    id: "BUG-02",
+    severity: "high",
+    title: "Treasury dashboard shows '...' placeholders — data never loads",
+    location: "Homepage",
+    where: "Homepage > $owockibot Treasury section",
+    description: "The Treasury section displays ETH, USDC, and $owockibot balances as literal '...' strings. The Speculation vs Fundamentals section also shows '...' for market cap, treasury value, Mcap/Treasury, app volume, X views, and pageviews. These are core trust signals — visitors cannot verify any treasury health or token fundamentals.",
+    reproduction: "Load owockibot.xyz and observe the Treasury and Speculation/Fundamentals sections — all dynamic values display '...' indefinitely, no data ever populates.",
+    fix: "Debug the JavaScript fetch calls (likely targeting stats.owockibot.xyz or an onchain API). Add a visible error state or fallback message if the fetch fails, rather than leaving '...' indefinitely."
+  },
+  {
+    id: "BUG-03",
+    severity: "high",
+    title: "Live Activity feed stuck on '⏳ Loading...' permanently",
+    location: "Homepage",
+    where: "Homepage > Live Stats > Live Activity",
+    description: "The Live Activity section shows '⏳ Loading...' and never resolves. The 'View more activity ↓' text is present but there is nothing below it. This is a key social proof element that remains permanently broken for all visitors.",
+    reproduction: "Scroll to 'Live Activity' on the homepage and wait — the loader never completes regardless of how long the page is open.",
+    fix: "Investigate the JS polling call to the activity API. Check for CORS issues, API key misconfigurations, or rate limiting. Add a timeout fallback — e.g. 'No recent activity to display' — after 5 seconds of no response."
+  },
+  {
+    id: "BUG-04",
+    severity: "high",
+    title: "Top Builders leaderboard stuck on 'Loading builders...' permanently",
+    location: "Homepage + /builders/",
+    where: "Homepage > Top Builders section and /builders/ page",
+    description: "The 'Top Builders' section on the homepage shows 'Loading builders...' indefinitely. The 'View Full Leaderboard →' link goes to /builders/ which also shows 'Loading builder data...' — both are broken. Builder visibility is completely absent across the site.",
+    reproduction: "Load homepage and scroll to 'Top Builders' — never populates. Visit /builders/ directly — same result.",
+    fix: "Debug the API call fetching builder data. Likely shares the same root cause as the Activity feed (API endpoint unreachable or CORS error). Add proper error and empty-state handling on both the homepage widget and the /builders/ page."
+  },
+  {
+    id: "BUG-05",
+    severity: "medium",
+    title: "Bounty Board statistics show '—' with no data",
+    location: "/bounty/",
+    where: "Bounty page > stats bar + bounty list",
+    description: "The /bounty/ page shows '—' for all four key stats: Total Bounties, Open, Completed, and USDC Volume. The bounty list itself shows 'Loading bounties...' and never populates. The Post a Bounty form is visible but there is no loading feedback or error state when data fails to load.",
+    reproduction: "Navigate to owockibot.xyz/bounty/ — all stats show dashes and the bounty list never loads.",
+    fix: "The bounty data API call is failing silently. Add error handling to display a message like 'Unable to load bounties — try again later', and default stats to '0' rather than '—' when no data is returned."
+  },
+  {
+    id: "BUG-06",
+    severity: "medium",
+    title: "Bioregional live conditions all show '—' and 'Loading...'",
+    location: "/bioregion/",
+    where: "Bioregion page > Live Conditions panel",
+    description: "The /bioregion/ page has four live data panels pulling from federal APIs (USGS, EPA, NWS): Air Quality (Denver), Temperature (Denver), S. Platte @ Denver streamflow, and Cache la Poudre Flow. All four display '—' for the value and 'Loading...' for the status. None of them ever resolve.",
+    reproduction: "Navigate to owockibot.xyz/bioregion/ — all four Live Conditions cards stay in loading state indefinitely.",
+    fix: "Audit the fetch calls to the federal data endpoints. These APIs can be rate-limited or may require specific CORS handling. Add a 'Data unavailable' fallback and show a last-updated timestamp when data does load successfully."
+  },
+  {
+    id: "BUG-07",
+    severity: "low",
+    title: "Token page nav is missing the 'Social Contract' link",
+    location: "/token/",
+    where: "Token page > navigation bar",
+    description: "The navigation bar on /token/ is missing the 'Social Contract' link, which appears in the nav on every other page across the site. Users on the token page have no direct path to the social contract from the nav.",
+    reproduction: "Compare the nav on /token/ against any other page — Social Contract link is absent only on the token page.",
+    fix: "Add 'Social Contract' to the nav on /token/ to match the consistent site-wide navigation."
+  },
+  {
+    id: "BUG-08",
+    severity: "low",
+    title: "Hero '📊 Stats' link points to /bounty/ instead of stats.owockibot.xyz",
+    location: "Homepage",
+    where: "Homepage > hero section > '📊 Stats' link",
+    description: "In the hero section, the '📊 Stats' link routes to /bounty/ (the bounty board) instead of the dedicated stats dashboard at stats.owockibot.xyz. The 'See more stats →' button in the Live Stats section correctly links to stats.owockibot.xyz — making this a clear mislink.",
+    reproduction: "In the hero area, click '📊 Stats' — it routes to /bounty/ instead of stats.owockibot.xyz.",
+    fix: "Update the hero '📊 Stats' link href to https://stats.owockibot.xyz to match the correct destination."
+  }
+];
+
+const sevLabel = { critical: 'CRITICAL', high: 'HIGH', medium: 'MEDIUM', low: 'LOW' };
+
+const list = document.getElementById('bug-list');
+
+bugs.forEach(bug => {
+  const card = document.createElement('div');
+  card.className = 'bug-card';
+
+  card.innerHTML = `
+    <div class="bug-trigger" role="button" tabindex="0">
+      <span class="sev-tag sev-${bug.severity}">${sevLabel[bug.severity]}</span>
+      <span class="bug-id">${bug.id}</span>
+      <span class="bug-title">${bug.title}</span>
+      <span class="bug-loc">${bug.location}</span>
+      <span class="bug-arrow">›</span>
+    </div>
+    <div class="bug-body">
+      <div class="bug-grid">
+        <div class="bug-field">
+          <span class="field-label">Location</span>
+          <span class="field-content">${bug.where}</span>
+        </div>
+        <div class="bug-field">
+          <span class="field-label">Affected path</span>
+          <span class="field-content" style="font-family:var(--mono);font-size:12px">${bug.location}</span>
+        </div>
+        <div class="bug-field full">
+          <span class="field-label">Description</span>
+          <span class="field-content">${bug.description}</span>
+        </div>
+        <div class="bug-field full">
+          <span class="field-label">How to reproduce</span>
+          <div class="field-code">${bug.reproduction}</div>
+        </div>
+        <div class="bug-field full">
+          <span class="field-label">Recommended fix</span>
+          <div class="field-fix">${bug.fix}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const trigger = card.querySelector('.bug-trigger');
+  const toggle = () => card.classList.toggle('open');
+  trigger.addEventListener('click', toggle);
+  trigger.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') toggle(); });
+
+  list.appendChild(card);
+});
+</script>
+</body>
+</html>
